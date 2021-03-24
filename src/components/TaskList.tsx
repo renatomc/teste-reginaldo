@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import uuid from 'react-uuid';
 
 import '../styles/tasklist.scss'
 
 import { FiTrash, FiCheckSquare } from 'react-icons/fi'
+import { BiSelectMultiple, BiEraser } from 'react-icons/bi'
 
 interface Task {
   id: number;
@@ -13,18 +15,61 @@ interface Task {
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [allSelected, setAllSelected] = useState(false);
 
   function handleCreateNewTask() {
-    // Crie uma nova task com um id random, não permita criar caso o título seja vazio.
+    if(!newTaskTitle) return;
+    const newTask = {
+      id: uuid(),
+      title: newTaskTitle,
+      isComplete: false,
+    };
+
+    const oldTasks = tasks;
+
+    setTasks([...oldTasks, newTask]);
+
+    setNewTaskTitle('');
   }
 
   function handleToggleTaskCompletion(id: number) {
     // Altere entre `true` ou `false` o campo `isComplete` de uma task com dado ID
+
+    const indexTask = tasks.findIndex(task => task.id === id);
+
+    if(indexTask === -1) return;
+
+    const newTasks = tasks;
+
+    newTasks[indexTask].isComplete = !tasks[indexTask].isComplete;
+
+    setTasks([...newTasks]);
   }
 
   function handleRemoveTask(id: number) {
-    // Remova uma task da listagem pelo ID
+    const newTasks = tasks.filter(task => task.id !== id);
+    setTasks([...newTasks]);
   }
+
+  function handleSelectAll() {
+    const newTasks = tasks.map(task => ({
+      ...task,
+      isComplete: true,
+    }));
+
+    setTasks([...newTasks]);
+    setAllSelected(true);
+  }
+
+  function handleClearSelectAll() {
+    const newTasks = tasks.map(task => ({
+      ...task,
+      isComplete: false,
+    }));
+
+    setTasks([...newTasks]);
+    setAllSelected(false);
+  } 
 
   return (
     <section className="task-list container">
@@ -69,6 +114,16 @@ export function TaskList() {
           
         </ul>
       </main>
+      {!allSelected && (
+        <button type="button" onClick={() => handleSelectAll()}>
+          <BiSelectMultiple size={26}/>
+        </button>
+      )}
+      {allSelected && (
+        <button type="button" onClick={() => handleClearSelectAll()}>
+          <BiEraser size={26}/>
+        </button>
+      )}
     </section>
   )
 }
